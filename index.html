@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Random Number Generator</title>
+    <style>
+        #container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+  
+        button,
+        progress,
+        strong {
+          margin-top: 10px;
+        }
+  
+        progress {
+          width: 20%;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+        <h1>Генератор случайных чисел</h1>
+        <button id="generate">Получить среднее 10млн случайных чисел</button>
+        <p><strong id="result"></strong></p>
+        <progress id="progress" value="0" max="100"></progress>
+        <button id="generate_weather">Получить погоду в Москве</button>
+        <p><strong id="weather"> </p>
+        <progress id="progress_weather" value="0" max="100"></progress>
+    </div>
+    <script>
+        const worker = new Worker("worker.js");
+        worker.addEventListener("message", (event) => {
+        const resultElement = document.getElementById("result");
+        resultElement.textContent = event.data;
+
+        const progressElement = document.getElementById("progress");
+        const progress = (event.data);
+        progressElement.value = progress;
+      });
+
+        const worker_weather = new Worker("weather.js");
+        const weatherResult = document.getElementById("weather");
+        weatherResult.textContent = 'Погода в Москве еще не получена'
+        worker_weather.addEventListener("message", (event) => {
+        const resultElement = document.getElementById("weather");
+        resultElement.textContent = event.data;
+
+      });
+
+        document.getElementById("generate_weather").addEventListener("click", () => {
+        const generateBtn = document.getElementById("generate_weather");
+        const weatherResult = document.getElementById("weather");
+        generateBtn.disabled = true;
+        weatherResult.textContent = 'Погода в Москве получается'
+        temperature = event.data;
+        if (temperature == null)
+          weatherResult.textContent = 'Ошибка получения погоды (API-key все еще недоступен)'
+        else {
+          weatherResult.textContent = event.data;
+          generateBtn.disabled = false;
+        }
+        
+      });
+
+      document.getElementById("generate").addEventListener("click", () => {
+        const generateBtn = document.getElementById("generate");
+        generateBtn.disabled = true;
+        const progress = document.getElementById("progress");
+        progress.max = 100;
+        progress.value = 0;
+
+        worker.postMessage(10000000);
+
+        const interval = setInterval(() => {
+          const progress = document.getElementById("progress");
+          if (progress.value >= 100) {
+            clearInterval(interval);
+            generateBtn.disabled = false;
+          } else {
+            progress.value++;
+          }
+        }, 10);
+      });
+    </script>
+  </body>
+</html>
